@@ -14,13 +14,21 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-    - name: Setup Blender
-      run: |
-        wget https://download.blender.org/release/Blender2.83/blender-2.83.4-linux64.tar.xz
-        tar xf blender-2.83.4-linux64.tar.xz
-        ./blender-2.83.4-linux64/blender -b *.blend -o ./output -F PNG -f 1
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v2
+    -	name: Cache Blender 
+	    id: blender-cache
+	    uses: actions/cache@v2	  	
       with:
-        name: Output
-        path: ./output.*
+        path: blender-2.83.4-linux64
+        key: ${{ runner.os }}-blender
+		- name: Setup Blender
+			if: steps.blender-cache.outputs.cache-hit != 'true'
+			run: |
+			  wget https://download.blender.org/release/Blender2.83/blender-2.83.4-linux64.tar.xz
+			  tar xf blender-2.83.4-linux64.tar.xz
+		- name: Render Image
+			run: ./blender-2.83.4-linux64/blender -b *.blend -o //output -F PNG -f 1 -t 64
+		- name: Upload Artifact
+			uses: actions/upload-artifact@v2
+			with:
+			  name: Output
+			  path: output*
